@@ -1,0 +1,12 @@
+{
+  "name": "freighttrack-mcp-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "MCP server for privacy-safe FreightTrack shipment lookups",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.17.2",
+    "pg": "^8.16.3",
+    "zod": "^3.23.8"
+  }
+}

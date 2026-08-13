@@ -1,0 +1,45 @@
+name: Frontend CI
+
+on:
+  push:
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-ci.yml'
+  pull_request:
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-ci.yml'
+
+jobs:
+  build-frontend:
+    runs-on: ubuntu-latest
+    env:
+      NPM_REGISTRY_URL: ${{ vars.NPM_REGISTRY_URL || 'https://registry.npmjs.org/' }}
+      NPM_STRICT_SSL: ${{ vars.NPM_STRICT_SSL || 'true' }}
+      PNPM_VERSION: ${{ vars.PNPM_VERSION || '9.7.0' }}
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Set up pnpm
+        run: |
+          npm config set strict-ssl ${NPM_STRICT_SSL}
+          npm config set registry ${NPM_REGISTRY_URL}
+          npm install -g pnpm@${PNPM_VERSION}
+          pnpm config set strict-ssl ${NPM_STRICT_SSL}
+          pnpm config set registry ${NPM_REGISTRY_URL}
+
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Build
+        run: pnpm run build

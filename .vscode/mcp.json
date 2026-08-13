@@ -1,0 +1,18 @@
+{
+  "servers": {
+    "freighttrack-shipments": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        ".vscode/mcp-server/shipment-lookup-server.mjs"
+      ],
+      "env": {
+        "DB_HOST": "localhost",
+        "DB_PORT": "5432",
+        "DB_NAME": "freighttrack",
+        "DB_USERNAME": "postgres",
+        "DB_PASSWORD": "postgres"
+      }
+    }
+  }
+}

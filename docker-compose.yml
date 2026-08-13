@@ -1,0 +1,53 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: freighttrack-postgres
+    environment:
+      POSTGRES_DB: freighttrack
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: freighttrack-backend
+    depends_on:
+      - postgres
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: freighttrack
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      SERVER_PORT: 8080
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build:
+      context: ./demo-ui
+      dockerfile: Dockerfile
+    container_name: freighttrack-frontend
+    depends_on:
+      - backend
+    ports:
+      - "4200:80"
+
+  demo-ui:
+    build:
+      context: ./demo-ui
+      dockerfile: Dockerfile
+    container_name: freighttrack-demo-ui
+    depends_on:
+      - backend
+    ports:
+      - "4201:80"
+
+volumes:
+  pg_data:

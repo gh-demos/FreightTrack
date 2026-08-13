@@ -1,0 +1,55 @@
+<div class="page-wrap">
+  <h1>FreightTrack</h1>
+  <p>Shipment operations dashboard</p>
+
+  <div class="card section">
+    <h2>Track a Shipment</h2>
+    <div class="row">
+      <input
+        type="text"
+        [(ngModel)]="trackingNumber"
+        placeholder="Enter tracking number"
+      />
+      <button (click)="findShipment()">Find</button>
+      <button class="secondary" (click)="loadShipments()">Load All</button>
+    </div>
+
+    <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
+    <p *ngIf="loading">Loading...</p>
+  </div>
+
+  <div class="card section" *ngIf="selectedShipment">
+    <h2>Shipment Details</h2>
+    <div class="grid">
+      <div><strong>Tracking:</strong> {{ selectedShipment.trackingNumber }}</div>
+      <div><strong>Status:</strong> {{ selectedShipment.status }}</div>
+      <div><strong>Origin:</strong> {{ selectedShipment.origin }}</div>
+      <div><strong>Destination:</strong> {{ selectedShipment.destination }}</div>
+      <div><strong>Pickup:</strong> {{ selectedShipment.pickupDate }}</div>
+      <div><strong>Expected Delivery:</strong> {{ selectedShipment.expectedDeliveryDate }}</div>
+      <div><strong>Actual Delivery:</strong> {{ selectedShipment.actualDeliveryDate || '-' }}</div>
+    </div>
+  </div>
+
+  <div class="card section" *ngIf="shipments.length > 0">
+    <h2>Recent Shipments</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Tracking</th>
+          <th>Status</th>
+          <th>Origin</th>
+          <th>Destination</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let shipment of shipments">
+          <td>{{ shipment.trackingNumber }}</td>
+          <td>{{ shipment.status }}</td>
+          <td>{{ shipment.origin }}</td>
+          <td>{{ shipment.destination }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

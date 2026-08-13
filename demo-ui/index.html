@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FreightTrack Console</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --paper: #ffffff;
+      --ink: #192335;
+      --muted: #5d6c82;
+      --line: #dbe3ef;
+      --brand: #0a6cc2;
+      --brand-soft: #e8f2fd;
+      --ok: #198754;
+      --err: #b42318;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(900px 480px at 110% -10%, #d8e8fb 0%, transparent 65%),
+        radial-gradient(600px 280px at -10% -20%, #ffe9d2 0%, transparent 70%),
+        var(--bg);
+    }
+
+    .shell {
+      max-width: 1200px;
+      margin: 28px auto;
+      padding: 0 20px 28px;
+    }
+
+    .topbar {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 8px 20px rgba(15, 35, 70, 0.06);
+    }
+
+    .title {
+      margin: 0;
+      font-size: 26px;
+      letter-spacing: 0.2px;
+    }
+
+    .subtitle {
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .status {
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1px solid var(--line);
+      background: #fff;
+      white-space: nowrap;
+    }
+
+    .status.ok { color: var(--ok); border-color: #bde3d0; background: #f1faf5; }
+    .status.err { color: var(--err); border-color: #f3b9b3; background: #fff5f4; }
+
+    .nav {
+      margin-top: 14px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 10px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .tab {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 14px;
+      color: #26415f;
+      background: transparent;
+      cursor: pointer;
+      transition: background 140ms ease, color 140ms ease;
+    }
+
+    .tab:hover { background: #edf3fb; }
+    .tab.active { background: var(--brand-soft); color: var(--brand); font-weight: 700; }
+
+    .panel {
+      margin-top: 14px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 8px 20px rgba(15, 35, 70, 0.06);
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .panel-title {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    .panel-meta {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .shipment-tools {
+      display: none;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .shipment-tools.visible { display: flex; }
+
+    input {
+      border: 1px solid #c9d6e8;
+      border-radius: 10px;
+      padding: 10px 12px;
+      min-width: 250px;
+      font-size: 14px;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 12px;
+      color: #fff;
+      background: var(--brand);
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .btn.secondary { background: #63728a; }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    }
+
+    .metric-name {
+      color: var(--muted);
+      font-size: 13px;
+      margin: 0;
+    }
+
+    .metric-value {
+      margin: 6px 0 0;
+      font-size: 26px;
+      font-weight: 700;
+      color: #243a57;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 760px;
+      font-size: 14px;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 1px solid #ecf1f8;
+      vertical-align: top;
+      max-width: 320px;
+      overflow-wrap: break-word;
+    }
+
+    th {
+      background: #f8fbff;
+      position: sticky;
+      top: 0;
+      font-size: 12px;
+      color: #355073;
+      font-weight: 700;
+      text-transform: none;
+      letter-spacing: 0.2px;
+      white-space: nowrap;
+    }
+
+    tr:hover td { background: #fafcff; }
+
+    .muted { color: var(--muted); }
+    .empty {
+      border: 1px dashed #c7d7eb;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      color: var(--muted);
+      background: #fbfdff;
+    }
+
+    @media (max-width: 760px) {
+      .title { font-size: 22px; }
+      input { min-width: 180px; width: 100%; }
+      .shipment-tools { width: 100%; }
+      .btn { width: 100%; }
+      .tab { flex: 1 1 calc(50% - 8px); text-align: center; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div>
+        <h1 class="title">FreightTrack</h1>
+        <p class="subtitle">Operations Console</p>
+      </div>
+      <div id="status" class="status">Checking service...</div>
+    </header>
+
+    <nav class="nav" id="nav"></nav>
+
+    <section class="panel">
+      <div class="toolbar">
+        <div>
+          <h2 class="panel-title" id="panel-title">Overview</h2>
+          <div class="panel-meta" id="panel-meta">Loading latest data...</div>
+        </div>
+
+        <div class="shipment-tools" id="shipment-tools">
+          <input id="tracking" placeholder="Search by tracking number" />
+          <button class="btn" id="find-btn">Find Shipment</button>
+          <button class="btn secondary" id="all-btn">Show All</button>
+        </div>
+      </div>
+
+      <div class="cards" id="cards"></div>
+      <div id="content"></div>
+    </section>
+  </div>
+
+  <script>
+    const api = 'http://localhost:8080/api';
+
+    const sections = [
+      { id: 'overview', label: 'Overview' },
+      { id: 'shipments', label: 'Shipments', path: 'shipments' },
+      { id: 'customers', label: 'Customers', path: 'customers' },
+      { id: 'tracking-events', label: 'Tracking Events', path: 'tracking-events' },
+      { id: 'drivers', label: 'Drivers', path: 'drivers' },
+      { id: 'routes', label: 'Delivery Routes', path: 'routes' },
+      { id: 'shipping-exceptions', label: 'Exceptions/Delays', path: 'shipping-exceptions' },
+      { id: 'notifications', label: 'Notifications', path: 'notifications' }
+    ];
+
+    const nav = document.getElementById('nav');
+    const statusEl = document.getElementById('status');
+    const panelTitle = document.getElementById('panel-title');
+    const panelMeta = document.getElementById('panel-meta');
+    const cards = document.getElementById('cards');
+    const content = document.getElementById('content');
+    const shipmentTools = document.getElementById('shipment-tools');
+    const trackingInput = document.getElementById('tracking');
+    const findBtn = document.getElementById('find-btn');
+    const allBtn = document.getElementById('all-btn');
+
+    let activeSection = 'overview';
+    let cache = {};
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    }
+
+    function formatValue(value) {
+      if (value === null || value === undefined || value === '') return '<span class="muted">-</span>';
+      if (typeof value === 'object') return '<span class="muted">[object]</span>';
+      return escapeHtml(value);
+    }
+
+    function formatHeaderLabel(key) {
+      return key
+        .replaceAll('_', ' ')
+        .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .replace(/^./, (c) => c.toUpperCase());
+    }
+
+    function renderNav() {
+      nav.innerHTML = sections.map(section => {
+        const activeClass = section.id === activeSection ? 'tab active' : 'tab';
+        return '<button class="' + activeClass + '" data-id="' + section.id + '">' + escapeHtml(section.label) + '</button>';
+      }).join('');
+
+      nav.querySelectorAll('button').forEach(button => {
+        button.addEventListener('click', () => setSection(button.getAttribute('data-id')));
+      });
+    }
+
+    function renderCards(counts) {
+      const entries = [
+        ['Shipments', counts['shipments'] || 0],
+        ['Customers', counts['customers'] || 0],
+        ['Tracking Events', counts['tracking-events'] || 0],
+        ['Drivers', counts['drivers'] || 0],
+        ['Routes', counts['routes'] || 0],
+        ['Exceptions', counts['shipping-exceptions'] || 0],
+        ['Notifications', counts['notifications'] || 0]
+      ];
+
+      cards.innerHTML = entries.map(([name, value]) =>
+        '<article class="metric"><p class="metric-name">' + name + '</p><p class="metric-value">' + value + '</p></article>'
+      ).join('');
+    }
+
+    function renderTable(sectionLabel, rows) {
+      if (!Array.isArray(rows) || rows.length === 0) {
+        content.innerHTML = '<div class="empty">No records available in ' + escapeHtml(sectionLabel) + '.</div>';
+        return;
+      }
+
+      const headers = Array.from(
+        rows.reduce((set, row) => {
+          Object.keys(row || {}).forEach(k => set.add(k));
+          return set;
+        }, new Set())
+      );
+
+      const head = headers.map(h => '<th title="' + escapeHtml(h) + '">' + escapeHtml(formatHeaderLabel(h)) + '</th>').join('');
+      const body = rows.map(row => {
+        const cells = headers.map(h => '<td>' + formatValue(row[h]) + '</td>').join('');
+        return '<tr>' + cells + '</tr>';
+      }).join('');
+
+      content.innerHTML =
+        '<div class="table-wrap"><table><thead><tr>' + head + '</tr></thead><tbody>' + body + '</tbody></table></div>';
+    }
+
+    async function fetchResource(path) {
+      const response = await fetch(api + '/' + path);
+      if (!response.ok) throw new Error('Request failed');
+      return response.json();
+    }
+
+    async function loadOverview() {
+      const paths = sections.filter(s => s.path).map(s => s.path);
+      const requests = paths.map(async path => {
+        const data = await fetchResource(path);
+        cache[path] = data;
+        return [path, Array.isArray(data) ? data.length : (data ? 1 : 0)];
+      });
+
+      const counts = Object.fromEntries(await Promise.all(requests));
+      renderCards(counts);
+
+      const recent = cache['shipments'] || [];
+      const preview = recent.slice(0, 5);
+      panelMeta.textContent = 'Summary of operational data across all modules.';
+      renderTable('Recent Shipments', preview);
+    }
+
+    async function loadSection(sectionId) {
+      const section = sections.find(s => s.id === sectionId);
+      if (!section || !section.path) return;
+
+      const rows = await fetchResource(section.path);
+      cache[section.path] = rows;
+      cards.innerHTML = '';
+      panelMeta.textContent = (Array.isArray(rows) ? rows.length : 1) + ' record(s) loaded.';
+      renderTable(section.label, rows);
+    }
+
+    async function findShipment() {
+      const tracking = trackingInput.value.trim();
+      if (!tracking) {
+        panelMeta.textContent = 'Enter a tracking number to search.';
+        return;
+      }
+
+      const response = await fetch(api + '/shipments/tracking/' + encodeURIComponent(tracking));
+      if (!response.ok) {
+        panelMeta.textContent = 'No shipment found for tracking number: ' + tracking;
+        content.innerHTML = '<div class="empty">No matching shipment.</div>';
+        return;
+      }
+
+      const item = await response.json();
+      panelMeta.textContent = 'Showing shipment for tracking number: ' + tracking;
+      renderTable('Shipment Search', [item]);
+    }
+
+    async function setSection(sectionId) {
+      activeSection = sectionId;
+      renderNav();
+
+      const section = sections.find(s => s.id === sectionId);
+      panelTitle.textContent = section.label;
+      shipmentTools.classList.toggle('visible', sectionId === 'shipments');
+
+      try {
+        if (sectionId === 'overview') {
+          await loadOverview();
+        } else {
+          await loadSection(sectionId);
+        }
+      } catch (_error) {
+        cards.innerHTML = '';
+        panelMeta.textContent = 'Unable to load data at the moment.';
+        content.innerHTML = '<div class="empty">Service is currently unavailable.</div>';
+      }
+    }
+
+    async function initialize() {
+      try {
+        await fetchResource('shipments');
+        statusEl.className = 'status ok';
+        statusEl.textContent = 'Service Online';
+      } catch (_error) {
+        statusEl.className = 'status err';
+        statusEl.textContent = 'Service Unavailable';
+      }
+
+      renderNav();
+      findBtn.addEventListener('click', findShipment);
+      allBtn.addEventListener('click', () => setSection('shipments'));
+      trackingInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          findShipment();
+        }
+      });
+
+      setSection('overview');
+    }
+
+    initialize();
+  </script>
+</body>
+</html>
