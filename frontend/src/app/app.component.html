@@ -1,55 +1,66 @@
 <div class="page-wrap">
-  <h1>FreightTrack</h1>
-  <p>Shipment operations dashboard</p>
+  <div class="header">
+    <h1>Feedback Themes</h1>
+    <p class="subtitle">Synthetic signals grouped by theme · click to explore</p>
+  </div>
 
-  <div class="card section">
-    <h2>Track a Shipment</h2>
-    <div class="row">
-      <input
-        type="text"
-        [(ngModel)]="trackingNumber"
-        placeholder="Enter tracking number"
-      />
-      <button (click)="findShipment()">Find</button>
-      <button class="secondary" (click)="loadShipments()">Load All</button>
+  <div class="stats-card card">
+    <div class="stat-item">
+      <div class="stat-number">{{ totalSignals }}</div>
+      <div class="stat-label">SIGNALS</div>
     </div>
+    <div class="stat-item">
+      <div class="stat-number">{{ themes.length }}</div>
+      <div class="stat-label">THEMES</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number">{{ highImpactCount }}</div>
+      <div class="stat-label">HIGH IMPACT</div>
+    </div>
+  </div>
 
+  <div class="search-bar card">
+    <input
+      type="text"
+      [(ngModel)]="trackingNumber"
+      placeholder="Search by tracking number..."
+      (keyup.enter)="findShipment()"
+    />
+    <button (click)="findShipment()">Search</button>
+    <button class="secondary" (click)="loadShipments()">View All</button>
+  </div>
+
+  <div class="feedback">
     <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
-    <p *ngIf="loading">Loading...</p>
+    <p class="loading" *ngIf="loading">Loading shipments...</p>
   </div>
 
-  <div class="card section" *ngIf="selectedShipment">
-    <h2>Shipment Details</h2>
-    <div class="grid">
-      <div><strong>Tracking:</strong> {{ selectedShipment.trackingNumber }}</div>
-      <div><strong>Status:</strong> {{ selectedShipment.status }}</div>
-      <div><strong>Origin:</strong> {{ selectedShipment.origin }}</div>
-      <div><strong>Destination:</strong> {{ selectedShipment.destination }}</div>
-      <div><strong>Pickup:</strong> {{ selectedShipment.pickupDate }}</div>
-      <div><strong>Expected Delivery:</strong> {{ selectedShipment.expectedDeliveryDate }}</div>
-      <div><strong>Actual Delivery:</strong> {{ selectedShipment.actualDeliveryDate || '-' }}</div>
+  <div class="themes-container">
+    <div class="theme-card card" *ngFor="let theme of themes" [class.high-severity]="theme.severity === 'high'">
+      <button
+        type="button"
+        class="theme-header"
+        (click)="toggleTheme(theme)"
+        [attr.aria-expanded]="theme.expanded"
+        [attr.aria-controls]="'theme-content-' + theme.id"
+      >
+        <div class="theme-indicator" [class]="'severity-' + theme.severity"></div>
+        <div class="theme-info">
+          <h2 class="theme-name">{{ theme.name }}</h2>
+          <p class="theme-description">{{ theme.description }}</p>
+        </div>
+        <div class="theme-count">{{ theme.signalCount }}</div>
+        <div class="expand-icon" [class.expanded]="theme.expanded">▼</div>
+      </button>
+
+      <div class="theme-content" *ngIf="theme.expanded" [id]="'theme-content-' + theme.id">
+        <div class="signals-list">
+          <div class="signal-item" *ngFor="let signal of theme.signals">
+            <span class="signal-tag" [class]="'tag-' + signal.type">{{ signal.type }}</span>
+            <span class="signal-label">{{ signal.label }}</span>
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
-
-  <div class="card section" *ngIf="shipments.length > 0">
-    <h2>Recent Shipments</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Tracking</th>
-          <th>Status</th>
-          <th>Origin</th>
-          <th>Destination</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let shipment of shipments">
-          <td>{{ shipment.trackingNumber }}</td>
-          <td>{{ shipment.status }}</td>
-          <td>{{ shipment.origin }}</td>
-          <td>{{ shipment.destination }}</td>
-        </tr>
-      </tbody>
-    </table>
   </div>
 </div>

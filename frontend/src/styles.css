@@ -1,9 +1,14 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+
 :root {
-  --ft-bg: #f5f7fa;
+  --ft-bg: #edf3f7;
   --ft-panel: #ffffff;
-  --ft-primary: #0d6efd;
-  --ft-accent: #14a44d;
-  --ft-text: #1f2a37;
+  --ft-primary: #0a6b78;
+  --ft-primary-strong: #084f5a;
+  --ft-accent: #16a34a;
+  --ft-text: #12202b;
+  --ft-muted: #5a6b7b;
+  --ft-border: #d7e3ec;
 }
 
 * {
@@ -12,9 +17,12 @@
 
 body {
   margin: 0;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Manrope', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   color: var(--ft-text);
-  background: linear-gradient(180deg, #eef2f7 0%, #f8fbff 100%);
+  background:
+    radial-gradient(circle at 15% 5%, rgba(10, 107, 120, 0.15), transparent 35%),
+    radial-gradient(circle at 85% 12%, rgba(22, 163, 74, 0.1), transparent 28%),
+    linear-gradient(180deg, #eaf2f6 0%, #f7fbfd 100%);
 }
 
 .page-wrap {
@@ -25,7 +33,7 @@ body {
 
 .card {
   background: var(--ft-panel);
-  border: 1px solid #e4e9f0;
-  border-radius: 14px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+  border: 1px solid var(--ft-border);
+  border-radius: 16px;
+  box-shadow: 0 16px 36px rgba(16, 42, 67, 0.12);
 }

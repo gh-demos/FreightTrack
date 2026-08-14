@@ -18,6 +18,23 @@ const server = new McpServer({
   version: "1.0.0"
 });
 
+let isShuttingDown = false;
+
+async function shutdown(signal) {
+  if (isShuttingDown) {
+    return;
+  }
+
+  isShuttingDown = true;
+  try {
+    await pool.end();
+  } catch (error) {
+    console.error("Error during DB pool shutdown", error);
+  } finally {
+    process.exit(signal === "SIGTERM" ? 0 : 0);
+  }
+}
+
 server.tool(
   "get_shipment_by_tracking_and_email",
   "Get shipment status using tracking number and customer email. Returns only non-personal shipment data.",
@@ -132,6 +149,7 @@ server.tool(
         ]
       };
     } catch (error) {
+      console.error("Shipment lookup failed", error);
       return {
         content: [
           {
@@ -139,8 +157,7 @@ server.tool(
             text: JSON.stringify(
               {
                 found: false,
-                error: "Failed to query shipment data.",
-                detail: error instanceof Error ? error.message : "Unknown error"
+                error: "Failed to query shipment data."
               },
               null,
               2
@@ -160,6 +177,14 @@ async function start() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
 }
+
+process.on("SIGINT", () => {
+  void shutdown("SIGINT");
+});
+
+process.on("SIGTERM", () => {
+  void shutdown("SIGTERM");
+});
 
 start().catch((err) => {
   console.error("Failed to start FreightTrack MCP server", err);
