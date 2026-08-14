@@ -6,7 +6,7 @@
   <title>FreightTrack Console</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg: #eaf1f5;
@@ -24,7 +24,7 @@
 
     body {
       margin: 0;
-      font-family: "Manrope", "Segoe UI", sans-serif;
+      font-family: "Albert Sans", "Segoe UI", sans-serif;
       color: var(--ink);
       background:
         radial-gradient(900px 480px at 110% -10%, #cde4ef 0%, transparent 65%),
@@ -108,6 +108,33 @@
     .tab.active { background: var(--brand-soft); color: var(--brand); font-weight: 700; }
 
     .tab svg { opacity: 0.86; }
+
+    .tab-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tab-bubble {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 20px;
+      height: 20px;
+      border-radius: 999px;
+      padding: 0 6px;
+      font-size: 11px;
+      font-weight: 800;
+      color: #fff;
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      box-shadow: 0 4px 10px rgba(220, 38, 38, 0.35);
+      line-height: 1;
+    }
+
+    .tab.active .tab-bubble {
+      background: linear-gradient(135deg, #0f6f7f 0%, #13879a 100%);
+      box-shadow: 0 4px 10px rgba(15, 111, 127, 0.35);
+    }
 
     .panel {
       margin-top: 14px;
@@ -439,6 +466,7 @@
 
     let activeSection = 'overview';
     const cache = {};
+    let unreadNotificationCount = 0;
     const AUTO_REFRESH_MS = 30_000;
     let isRefreshing = false;
 
@@ -571,12 +599,40 @@
       nav.innerHTML = sections.map(section => {
         const activeClass = section.id === activeSection ? 'tab active' : 'tab';
         const icon = sectionIcons[section.id] || sectionIcons.overview;
-        return '<button class="' + activeClass + '" data-id="' + section.id + '">' + icon + '<span>' + escapeHtml(section.label) + '</span></button>';
+        const bubble = section.id === 'notifications' && unreadNotificationCount > 0
+          ? '<span class="tab-bubble">' + escapeHtml(formatBubbleCount(unreadNotificationCount)) + '</span>'
+          : '';
+        return '<button class="' + activeClass + '" data-id="' + section.id + '">' + icon + '<span class="tab-label"><span>' + escapeHtml(section.label) + '</span>' + bubble + '</span></button>';
       }).join('');
 
       nav.querySelectorAll('button').forEach(button => {
         button.addEventListener('click', () => setSection(button.getAttribute('data-id')));
       });
+    }
+
+    function formatBubbleCount(count) {
+      if (count > 99) return '99+';
+      return String(count);
+    }
+
+    function getUnreadNotificationsCount(rows) {
+      if (!Array.isArray(rows)) return 0;
+      return rows.filter((row) => {
+        const status = String(row?.status || '').toUpperCase();
+        return status !== 'READ' || !row?.readAt;
+      }).length;
+    }
+
+    async function refreshNotificationsBubble() {
+      try {
+        const rows = await fetchResource('notifications');
+        cache.notifications = rows;
+        unreadNotificationCount = getUnreadNotificationsCount(rows);
+      } catch (_error) {
+        unreadNotificationCount = 0;
+      }
+
+      renderNav();
     }
 
     function setSimulationMeta(message) {
@@ -951,6 +1007,7 @@
 
       isRefreshing = true;
       try {
+        await refreshNotificationsBubble();
         if (activeSection === 'overview') {
           await loadOverview();
         } else {
@@ -994,6 +1051,7 @@
         statusEl.textContent = 'Service Unavailable';
       }
 
+      await refreshNotificationsBubble();
       renderNav();
 
       applyFilters.addEventListener('click', async () => {

@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/shipping-exceptions")
+@RequestMapping({"/shipping-exceptions", "/exceptions"})
 public class ShippingExceptionController {
 
     private final ShippingExceptionService shippingExceptionService;

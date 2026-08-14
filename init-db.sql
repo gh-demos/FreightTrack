@@ -120,6 +120,54 @@ VALUES
   ('Northwind Traders', 'logistics@northwind.example', '+1-206-555-0142', '500 Pine St', 'Seattle', 'WA', '98101', TRUE, NOW(), NOW())
 ON CONFLICT DO NOTHING;
 
+INSERT INTO customers (name, email, phone, address, city, state, postal_code, active, created_at, updated_at)
+SELECT
+  'Fabrikam Foods',
+  'dispatch@fabrikam.example',
+  '+1-503-555-0188',
+  '742 Market St',
+  'Portland',
+  'OR',
+  '97204',
+  TRUE,
+  NOW(),
+  NOW()
+WHERE NOT EXISTS (
+  SELECT 1 FROM customers c WHERE c.email = 'dispatch@fabrikam.example'
+);
+
+INSERT INTO customers (name, email, phone, address, city, state, postal_code, active, created_at, updated_at)
+SELECT
+  'Adventure Works Supply',
+  'shipping@adventureworks.example',
+  '+1-408-555-0110',
+  '200 Innovation Dr',
+  'San Jose',
+  'CA',
+  '95113',
+  TRUE,
+  NOW(),
+  NOW()
+WHERE NOT EXISTS (
+  SELECT 1 FROM customers c WHERE c.email = 'shipping@adventureworks.example'
+);
+
+INSERT INTO customers (name, email, phone, address, city, state, postal_code, active, created_at, updated_at)
+SELECT
+  'Tailspin Toys',
+  'logistics@tailspin.example',
+  '+1-702-555-0166',
+  '99 Desert Ridge Blvd',
+  'Las Vegas',
+  'NV',
+  '89101',
+  TRUE,
+  NOW(),
+  NOW()
+WHERE NOT EXISTS (
+  SELECT 1 FROM customers c WHERE c.email = 'logistics@tailspin.example'
+);
+
 INSERT INTO drivers (
   first_name,
   last_name,
@@ -221,6 +269,126 @@ FROM customers c, drivers d
 WHERE c.email = 'logistics@northwind.example'
   AND d.license_number = 'WA-TRK-1002'
   AND NOT EXISTS (SELECT 1 FROM shipments s WHERE s.tracking_number = 'FT-2026-0002');
+
+INSERT INTO shipments (
+  tracking_number,
+  customer_id,
+  origin,
+  destination,
+  weight,
+  weight_unit,
+  value,
+  currency,
+  description,
+  status,
+  pickup_date,
+  expected_delivery_date,
+  actual_delivery_date,
+  driver_id,
+  created_at,
+  updated_at
+)
+SELECT
+  'FT-2026-0003',
+  c.id,
+  'Portland, OR',
+  'Sacramento, CA',
+  640.00,
+  'KG',
+  22400.00,
+  'USD',
+  'Perishable goods pallet',
+  'SHIPPED',
+  CURRENT_DATE,
+  CURRENT_DATE + 2,
+  NULL,
+  d.id,
+  NOW(),
+  NOW()
+FROM customers c, drivers d
+WHERE c.email = 'dispatch@fabrikam.example'
+  AND d.license_number = 'WA-TRK-1001'
+  AND NOT EXISTS (SELECT 1 FROM shipments s WHERE s.tracking_number = 'FT-2026-0003');
+
+INSERT INTO shipments (
+  tracking_number,
+  customer_id,
+  origin,
+  destination,
+  weight,
+  weight_unit,
+  value,
+  currency,
+  description,
+  status,
+  pickup_date,
+  expected_delivery_date,
+  actual_delivery_date,
+  driver_id,
+  created_at,
+  updated_at
+)
+SELECT
+  'FT-2026-0004',
+  c.id,
+  'San Jose, CA',
+  'Phoenix, AZ',
+  980.00,
+  'KG',
+  45100.00,
+  'USD',
+  'Industrial tooling shipment',
+  'DELAYED',
+  CURRENT_DATE - 2,
+  CURRENT_DATE,
+  NULL,
+  d.id,
+  NOW(),
+  NOW()
+FROM customers c, drivers d
+WHERE c.email = 'shipping@adventureworks.example'
+  AND d.license_number = 'WA-TRK-1002'
+  AND NOT EXISTS (SELECT 1 FROM shipments s WHERE s.tracking_number = 'FT-2026-0004');
+
+INSERT INTO shipments (
+  tracking_number,
+  customer_id,
+  origin,
+  destination,
+  weight,
+  weight_unit,
+  value,
+  currency,
+  description,
+  status,
+  pickup_date,
+  expected_delivery_date,
+  actual_delivery_date,
+  driver_id,
+  created_at,
+  updated_at
+)
+SELECT
+  'FT-2026-0005',
+  c.id,
+  'Las Vegas, NV',
+  'Salt Lake City, UT',
+  300.00,
+  'KG',
+  9700.00,
+  'USD',
+  'Retail toy bundles',
+  'PENDING_PICKUP',
+  CURRENT_DATE + 1,
+  CURRENT_DATE + 3,
+  NULL,
+  d.id,
+  NOW(),
+  NOW()
+FROM customers c, drivers d
+WHERE c.email = 'logistics@tailspin.example'
+  AND d.license_number = 'WA-TRK-1001'
+  AND NOT EXISTS (SELECT 1 FROM shipments s WHERE s.tracking_number = 'FT-2026-0005');
 
 INSERT INTO tracking_events (
   shipment_id,
